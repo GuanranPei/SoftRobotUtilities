@@ -83,3 +83,16 @@ Timu_1 = rr.eul2rotm(np.deg2rad([60,0,0]))
 Timu_2 = rr.eul2rotm(np.deg2rad([30,0,0]))
 Timu_3 = rr.eul2rotm(np.deg2rad([0,0,0]))
 
+# Generate data storage for the plotting
+maxDataPoints = 50
+time_cal = np.arange(1, maxDataPoints + 1)
+storage_base_1 = np.zeros((maxDataPoints, 3))
+storage_1_2 = np.zeros((maxDataPoints, 3))
+storage_2_3 = np.zeros((maxDataPoints, 3))
+
+# Generate UI window
+root = tk.Tk()
+root.title('IMU orientation variation')
+
+# 创建 Matplotlib 图形和子图
+fig, axs = plt.subplots(1, 1, figsize=(10, 8))

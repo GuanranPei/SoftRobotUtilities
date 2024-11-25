@@ -1,70 +1,60 @@
-import matplotlib.pyplot as plt
+import pyqtgraph as pg
+from pyqtgraph.Qt import QtCore, QtGui
 import numpy as np
-import tkinter as tk
-from tkinter import ttk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# 生成数据存储变量
-maxDataPoints = 50
-time = np.arange(1, maxDataPoints + 1)
-storage_base_1 = np.zeros((maxDataPoints, 3))
-storage_1_2 = np.zeros((maxDataPoints, 3))
-storage_2_3 = np.zeros((maxDataPoints, 3))
+# 创建应用程序
+app = QtGui.QApplication([])
 
-# 创建 UI 窗口
-root = tk.Tk()
-root.title('IMU 位姿曲线图')
+# 创建窗口
+win = pg.GraphicsLayoutWidget(show=True)
+win.setWindowTitle("Real-Time Plot with Button")
 
-# 创建 Matplotlib 图形和子图
-fig, axs = plt.subplots(3, 1, figsize=(10, 8))
+# 创建绘图区域
+plot = win.addPlot(title="Real-Time Plot")
+curve = plot.plot(pen="r")  # 设置曲线为红色
+plot.setYRange(-1.5, 1.5)  # 设置 y 轴范围
 
-# 绘制 base_1 图
-axs[0].plot(time, storage_base_1[:, 1], 'r', linewidth=2, label='pitch')
-axs[0].plot(time, storage_base_1[:, 2], 'g', linewidth=2, label='roll')
-axs[0].axhline(0, color='k', linestyle='--', linewidth=2, label='y = 0')
-axs[0].set_title('base_1')
-axs[0].set_xlabel('newest points')
-axs[0].set_ylabel('angle/deg')
-axs[0].legend()
-axs[0].set_xlim([min(time), max(time)])
+# 初始化数据
+x = np.linspace(0, 2 * np.pi, 500)  # x 数据
+y = np.sin(x)  # 初始 y 数据
+phase = 0  # 相位变量
 
-# 绘制 1_2 图
-axs[1].plot(time, storage_1_2[:, 1], 'r', linewidth=2, label='pitch')
-axs[1].plot(time, storage_1_2[:, 2], 'g', linewidth=2, label='roll')
-axs[1].axhline(0, color='k', linestyle='--', linewidth=2, label='y = 0')
-axs[1].set_title('1_2')
-axs[1].set_xlabel('newest points')
-axs[1].set_ylabel('angle/deg')
-axs[1].legend()
-axs[1].set_xlim([min(time), max(time)])
+# 数据更新函数
+def update():
+    global phase, x
+    phase += 0.1
+    y = np.sin(x + phase)  # 生成新的 y 数据
+    curve.setData(x, y)  # 更新曲线数据
 
-# 绘制 2_3 图
-axs[2].plot(time, storage_2_3[:, 1], 'r', linewidth=2, label='pitch')
-axs[2].plot(time, storage_2_3[:, 2], 'g', linewidth=2, label='roll')
-axs[2].axhline(0, color='k', linestyle='--', linewidth=2, label='y = 0')
-axs[2].set_title('2_3')
-axs[2].set_xlabel('newest points')
-axs[2].set_ylabel('angle/deg')
-axs[2].legend()
-axs[2].set_xlim([min(time), max(time)])
+# 创建定时器，设置刷新频率为 50Hz
+timer = QtCore.QTimer()
+timer.timeout.connect(update)
+timer.start(1000)  # 每隔 20 毫秒更新一次
 
-# 调整布局
-plt.tight_layout()
+# 创建按钮关闭功能
+def stop_plot():
+    timer.stop()  # 停止定时器
+    win.close()  # 关闭窗口
+    main_window.close()
 
-# 按钮回调函数
-def on_button_click():
-    print("Save Cal button clicked")
-    root.destroy()  # 关闭窗口
+# 创建按钮
+button = QtGui.QPushButton("Stop")
+button.clicked.connect(stop_plot)  # 按钮点击后触发关闭功能
 
-# 创建按钮并绑定回调函数
-button = ttk.Button(root, text='Save Cal', command=on_button_click)
-button.pack()
+# 将按钮添加到窗口
+layout = QtGui.QVBoxLayout()  # 创建一个垂直布局
+layout.addWidget(win)  # 添加绘图窗口
+layout.addWidget(button)  # 添加按钮
 
-# 嵌入 Matplotlib 图形到 Tkinter 窗口中
-canvas = FigureCanvasTkAgg(fig, master=root)
-canvas.draw()
-canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+# 创建主窗口来容纳绘图和按钮
+main_window = QtGui.QWidget()
+main_window.setLayout(layout)
+main_window.resize(800, 600)
+main_window.setWindowTitle("Real-Time Plot with Button")
+main_window.show()
 
-# 启动 Tkinter 主循环
-root.mainloop()
+# 开始事件循环
+app.exec_()
 
+print("plotting finished")
+print("calculate and store homing offset...")
