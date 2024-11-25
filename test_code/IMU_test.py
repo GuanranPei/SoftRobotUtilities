@@ -1,5 +1,8 @@
 import numpy as np
 import time
+import sys
+
+sys.path.append("../")
 
 import softarm_utility as su
 import robotic_rotation as rr
