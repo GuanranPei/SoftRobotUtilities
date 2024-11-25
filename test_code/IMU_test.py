@@ -16,7 +16,7 @@ if __name__ == "__main__":
     d = 0.054 / 2
 
     # setup serial port
-    port_imu = "COM3"
+    port_imu = "COM14"
     sensorobj = su.setup_serial_port(port_imu)
 
     # For IMU sensing
@@ -33,35 +33,35 @@ if __name__ == "__main__":
             q2 = sensor_val[2]
             q3 = sensor_val[3]
 
-            eulbase = su.quat2eul(qbase)
-            eul1 = su.quat2eul(q1)
-            eul2 = su.quat2eul(q2)
-            eul3 = su.quat2eul(q3)
+            eulbase = rr.quat2eul(qbase)
+            eul1 = rr.quat2eul(q1)
+            eul2 = rr.quat2eul(q2)
+            eul3 = rr.quat2eul(q3)
 
             # print(f"eul_base(ZYX) \t{eulbase[0]}, {eulbase[1]}, {eulbase[2]}")
             # print(f"eul_1(ZYX) \t\t{eul1[0]}, {eul1[1]}, {eul1[2]}")
             # print(f"eul_2(ZYX) \t\t{eul2[0]}, {eul2[1]}, {eul2[2]}")
             # print(f"eul_3(ZYX) \t\t{eul3[0]}, {eul3[1]}, {eul3[2]}")
 
-            qbase_inv = su.quatinv(qbase)
-            q1_inv = su.quatinv(q1)
-            q2_inv = su.quatinv(q2)
+            qbase_inv = rr.quatinv(qbase)
+            q1_inv = rr.quatinv(q1)
+            q2_inv = rr.quatinv(q2)
 
-            RIMUbase_1 = su.quat2rotm(su.quatmultiply(qbase_inv, q1))
-            RIMU1_2 = su.quat2rotm(su.quatmultiply(q1_inv, q2))
-            RIMU2_3 = su.quat2rotm(su.quatmultiply(q2_inv, q3))
+            RIMUbase_1 = rr.quat2rotm(rr.quatmultiply(qbase_inv, q1))
+            RIMU1_2 = rr.quat2rotm(rr.quatmultiply(q1_inv, q2))
+            RIMU2_3 = rr.quat2rotm(rr.quatmultiply(q2_inv, q3))
 
             RROBObase_1 = np.transpose(Timu_1) @ RIMUbase_1 @ Timu_1
             RROBO1_2 = np.transpose(Timu_2) @ RIMU1_2 @ Timu_2
             RROBO2_3 = np.transpose(Timu_3) @ RIMU2_3 @ Timu_3
 
-            eulbase_1 = su.rotm2eul(RROBObase_1)
-            eul1_2 = su.rotm2eul(RROBO1_2)
-            eul2_3 = su.rotm2eul(RROBO2_3)
+            eulbase_1 = rr.rotm2eul(RROBObase_1)
+            eul1_2 = rr.rotm2eul(RROBO1_2)
+            eul2_3 = rr.rotm2eul(RROBO2_3)
 
-            print(f"eul_base_1(ZYX) \t{eulbase_1[0]}, {eulbase_1[1]}, {eulbase_1[2]}")
-            print(f"eul_1_2(ZYX) \t\t{eul1_2[0]}, {eul1_2[1]}, {eul1_2[2]}")
-            print(f"eul_2_3(ZYX) \t\t{eul2_3[0]}, {eul2_3[1]}, {eul2_3[2]}")
+            print(f"eul_base_1(ZYX) \t{np.rad2deg(eulbase_1[0])}, {np.rad2deg(eulbase_1[1])}, {np.rad2deg(eulbase_1[2])}")
+            print(f"eul_1_2(ZYX) \t\t{np.rad2deg(eul1_2[0])}, {np.rad2deg(eul1_2[1])}, {np.rad2deg(eul1_2[2])}")
+            print(f"eul_2_3(ZYX) \t\t{np.rad2deg(eul2_3[0])}, {np.rad2deg(eul2_3[1])}, {np.rad2deg(eul2_3[2])}")
 
             # Placeholder for pose_recon_R function, should be implemented accordingly
             # sdxdy_c = np.vstack([su.pose_recon_R(L[0:3, :], RROBObase_1),
@@ -75,4 +75,4 @@ if __name__ == "__main__":
             # print('| {:10.4f} | {:10.4f} | {:10.4f} | {:10.4f} | {:10.4f} | {:10.4f} | {:10.4f} | {:10.4f} | {:10.4f} |'.format(*sdxdy_c[:, 0]))
             # print('+------------+------------+------------+------------+------------+------------+------------+------------+------------+')
 
-            time.sleep(0.1)
+            # time.sleep(0.5) # for checking data
