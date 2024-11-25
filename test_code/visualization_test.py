@@ -1,4 +1,4 @@
-from visualization_pcc import plot_single_sections as plt_soft
+from test_code.visualization_pcc import plot_single_sections as plt_soft
 import matplotlib.pyplot as plt
 
 s = 1

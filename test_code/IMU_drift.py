@@ -1,7 +1,7 @@
 import numpy as np
 import robotic_rotation as rr
 import tentacle_utility as tu
-from visualization_pcc import plot_single_sections as plt_soft
+from test_code.visualization_pcc import plot_single_sections as plt_soft
 import matplotlib.pyplot as plt
 import plot_quaternion as plt_quat
 

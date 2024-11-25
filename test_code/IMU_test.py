@@ -8,13 +8,6 @@ import softarm_utility as su
 import robotic_rotation as rr
 
 if __name__ == "__main__":
-    # Initialize system parameters
-    motors_r = np.array([20000, 20000, 20000, 40000, 40000, 40000, 40000, 40000, 40000]).reshape(-1, 1)
-    L_r = np.array([0.1320, 0.1320, 0.1320, 0.2740, 0.2740, 0.2740, 0.2680, 0.2680, 0.2680]).reshape(-1, 1)
-    unit_scale = 2 * np.pi / 4096
-    r_pulley = 0.020 / 2
-    d = 0.054 / 2
-
     # setup serial port
     port_imu = "COM14"
     sensorobj = su.setup_serial_port(port_imu)
@@ -59,11 +52,9 @@ if __name__ == "__main__":
             eul1_2 = rr.rotm2eul(RROBO1_2)
             eul2_3 = rr.rotm2eul(RROBO2_3)
 
-            # print(np.array(eulbase_1).reshape(1,-1))
-
-            # print(f"eul_base_1(ZYX) \t{np.rad2deg(eulbase_1).reshape(1,-1)}")
-            # print(f"eul_1_2(ZYX) \t\t{np.rad2deg(eul1_2).reshape(1,-1)}")
-            # print(f"eul_2_3(ZYX) \t\t{np.rad2deg(eul2_3).reshape(1,-1)}")
+            print(f"eul_base_1(ZYX) \t{np.rad2deg(eulbase_1).reshape(1,-1)}")
+            print(f"eul_1_2(ZYX) \t\t{np.rad2deg(eul1_2).reshape(1,-1)}")
+            print(f"eul_2_3(ZYX) \t\t{np.rad2deg(eul2_3).reshape(1,-1)}")
 
             # Placeholder for pose_recon_R function, should be implemented accordingly
             # sdxdy_c = np.vstack([su.pose_recon_R(L[0:3, :], RROBObase_1),
