@@ -9,15 +9,15 @@ app = QtGui.QApplication([])
 win = pg.GraphicsLayoutWidget(show=True)
 win.setWindowTitle("Real-Time Plot with Button")
 
-# 创建绘图区域
-plot = win.addPlot(title="Real-Time Plot")
-curve = plot.plot(pen="r")  # 设置曲线为红色
-plot.setYRange(-1.5, 1.5)  # 设置 y 轴范围
-
 # 初始化数据
 x = np.linspace(0, 2 * np.pi, 500)  # x 数据
 y = np.sin(x)  # 初始 y 数据
 phase = 0  # 相位变量
+
+# 创建绘图区域
+plot = win.addPlot(title="Real-Time Plot")
+curve = plot.plot(x,y,pen="r")  # 设置曲线为红色
+plot.setYRange(-1.5, 1.5)  # 设置 y 轴范围
 
 # 数据更新函数
 def update():
@@ -36,6 +36,8 @@ def stop_plot():
     timer.stop()  # 停止定时器
     win.close()  # 关闭窗口
     main_window.close()
+    print("plotting finished")
+    print("calculate and store homing offset...")
 
 # 创建按钮
 button = QtGui.QPushButton("Stop")
@@ -55,6 +57,3 @@ main_window.show()
 
 # 开始事件循环
 app.exec_()
-
-print("plotting finished")
-print("calculate and store homing offset...")
