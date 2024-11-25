@@ -59,9 +59,11 @@ if __name__ == "__main__":
             eul1_2 = rr.rotm2eul(RROBO1_2)
             eul2_3 = rr.rotm2eul(RROBO2_3)
 
-            print(f"eul_base_1(ZYX) \t{np.rad2deg(eulbase_1[0])}, {np.rad2deg(eulbase_1[1])}, {np.rad2deg(eulbase_1[2])}")
-            print(f"eul_1_2(ZYX) \t\t{np.rad2deg(eul1_2[0])}, {np.rad2deg(eul1_2[1])}, {np.rad2deg(eul1_2[2])}")
-            print(f"eul_2_3(ZYX) \t\t{np.rad2deg(eul2_3[0])}, {np.rad2deg(eul2_3[1])}, {np.rad2deg(eul2_3[2])}")
+            # print(np.array(eulbase_1).reshape(1,-1))
+
+            # print(f"eul_base_1(ZYX) \t{np.rad2deg(eulbase_1).reshape(1,-1)}")
+            # print(f"eul_1_2(ZYX) \t\t{np.rad2deg(eul1_2).reshape(1,-1)}")
+            # print(f"eul_2_3(ZYX) \t\t{np.rad2deg(eul2_3).reshape(1,-1)}")
 
             # Placeholder for pose_recon_R function, should be implemented accordingly
             # sdxdy_c = np.vstack([su.pose_recon_R(L[0:3, :], RROBObase_1),

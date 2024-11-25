@@ -3,7 +3,7 @@
 
 # Author: Guanran Pei
 # *********     Dynamixel utility library for soft robot control      *********
-
+import numpy as np
 import os
 
 if os.name == 'nt':
@@ -97,7 +97,7 @@ def setOperatingMode(portHandler, packetHandler, MOTOR_IDs, Operating_Mode):
             return False
         else:
             print(f"Operating Mode set to Mode {Operating_Mode} for ID {MOTOR_IDs[i]}")
-            return True
+    return True
 
 def setTorque(portHandler, packetHandler, MOTOR_IDs, TORQUE_STATUS):
     Motor_Num = len(MOTOR_IDs)
@@ -111,7 +111,7 @@ def setTorque(portHandler, packetHandler, MOTOR_IDs, TORQUE_STATUS):
             return False
         else:
             print("Dynamixel#%d has been successfully connected" % MOTOR_IDs[i])
-            return True
+    return True
 
 def groupWriteCurrentNum(portHandler, packetHandler):
     groupwrite_current_num = GroupSyncWrite(portHandler, packetHandler, ADDR_PRO_GOAL_CURRENT, LEN_PRO_GOAL_CURRENT)
@@ -134,7 +134,7 @@ def groupWriteSync(packetHandler, groupwrite_num,  MOTOR_IDs, goal_values, datat
     for i in range(Motor_Num):
         if datatype == 'current':
             # Allocate goal position value into byte array
-            goal_current = [DXL_LOBYTE(DXL_LOWORD(goal_values[i])), DXL_HIBYTE(DXL_LOWORD(goal_values[i])), DXL_LOBYTE(DXL_HIWORD(goal_values[i])), DXL_HIBYTE(DXL_HIWORD(goal_values[i]))]
+            goal_current = [DXL_LOBYTE(DXL_LOWORD(goal_values[i])), DXL_HIBYTE(DXL_LOWORD(goal_values[i]))]
             # Add Dynamixel#1 goal position value to the Syncwrite parameter storage
             dxl_addparam_result = groupwrite_num.addParam(MOTOR_IDs[i], goal_current)
             if dxl_addparam_result != True:
@@ -209,7 +209,11 @@ def groupReadSync(packetHandler, groupread_num,  MOTOR_IDs, datatype):
     # Clear syncread parameter storage
     groupread_num.clearParam()
 
-    return dxl_present
+    if datatype == 'current':
+        return np.array(dxl_present).astype(np.int32)
+    elif datatype == 'position':
+        return np.array(dxl_present).astype(np.int16)
+    
 
 def ReadHomingOffset(portHandler, packetHandler,  MOTOR_IDs):
 
@@ -240,7 +244,7 @@ def ReadHomingOffset(portHandler, packetHandler,  MOTOR_IDs):
         # Append the signed offset value
         homing_offsets_dec.append(dxl_homing_offset_signed)
 
-    return homing_offsets_dec
+    return np.array(homing_offsets_dec)
 
 def WriteHomingOffset(portHandler, packetHandler,  MOTOR_IDs, HOMING_OFFSETS_dec):
 
