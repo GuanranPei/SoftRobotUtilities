@@ -35,7 +35,7 @@ MOTOR_Orients               = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1]) # motors 1,2
 CURRENT_THRESHOLD           = 1
 POSITION_THRESHOLD          = 10
 TENSION_CURRENT_VALUE       = 10
-GOAL_CURRENT       = TENSION_CURRENT_VALUE * MOTOR_Orients
+MOTOR_TENSION_CURRENT       = TENSION_CURRENT_VALUE * MOTOR_Orients
 
 # ======================================================================================
 #                                   Dynamixel Setup
@@ -66,4 +66,20 @@ groupread_current_num = du.groupReadCurrentNum(port_handler, packet_handler)
 groupwrite_position_num = du.groupWritePositionNum(port_handler, packet_handler)
 # Initialize Groupsyncread Position Structs
 groupread_position_num = du.groupReadPositionNum(port_handler, packet_handler)
+
+# Write the goal current value to motors
+output_groupWriteSync = du.groupWriteSync(packet_handler, groupwrite_current_num,  MOTOR_IDs, MOTOR_TENSION_CURRENT, 'current')
+while 1:
+    MOTOR_CURRENT = du.GroupSyncRead(packet_handler, groupread_current_num, MOTOR_IDs, 'current')
+    if np.all(np.abs(MOTOR_CURRENT - MOTOR_TENSION_CURRENT) <= CURRENT_THRESHOLD):
+        break
+
+# setup serial port
+port_imu = "COM14"
+sensorobj = su.setup_serial_port(port_imu)
+
+# For IMU sensing
+Timu_1 = rr.eul2rotm(np.deg2rad([60,0,0]))
+Timu_2 = rr.eul2rotm(np.deg2rad([30,0,0]))
+Timu_3 = rr.eul2rotm(np.deg2rad([0,0,0]))
 
