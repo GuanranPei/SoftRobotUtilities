@@ -282,8 +282,11 @@ def ShutDown(portHandler, packetHandler, MOTOR_IDs):
         dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, MOTOR_IDs[i], ADDR_PRO_TORQUE_ENABLE, TORQUE_DISABLE)
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+            return False
         elif dxl_error != 0:
             print("%s" % packetHandler.getRxPacketError(dxl_error))
+            return False
 
     # Close port
     portHandler.closePort()
+    return True

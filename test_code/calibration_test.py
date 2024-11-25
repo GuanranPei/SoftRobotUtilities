@@ -96,6 +96,10 @@ storage_2_3 = np.zeros((maxDataPoints, 3))
 # Generate the Qt application
 app = QtGui.QApplication([])
 
+# ======================================================================================
+#                                   1st Section Calibration
+# ======================================================================================
+
 # Generate plot window
 win = pg.GraphicsLayoutWidget(show=True)
 win.setWindowTitle("Real-Time IMU base 1")
@@ -117,7 +121,7 @@ yline = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(color='k', style=pg.QtCore.
 plot.addItem(yline)
 
 # Data updating function
-def update():
+def update1():
     sensor_val = su.sensor_call(sensorobj)
     if sensor_val is not False:
         qbase = sensor_val[0]
@@ -132,11 +136,11 @@ def update():
 
 # Create time counter for update the plot
 timer = QtCore.QTimer()
-timer.timeout.connect(update)
+timer.timeout.connect(update1)
 timer.start(20) # update per 20 ms
 
 # Homingoffset calculating and saving function
-def stop_plot():
+def stop_plot1():
     timer.stop()  # 停止定时器
     win.close()  # 关闭窗口
     button.close()
@@ -153,7 +157,7 @@ def stop_plot():
     # write the proper homing offset
     output_WriteHomingOffset = du.WriteHomingOffset(port_handler, packet_handler, MOTOR_IDs[:3], homingoffsets1_d)
     # change the Operating_Mode to extended position control
-    output_setOperatingMode = du.setOperatingMode(port_handler, packet_handler, MOTOR_IDs, EXPOSITION_MODE)
+    output_setOperatingMode = du.setOperatingMode(port_handler, packet_handler, MOTOR_IDs[:3], EXPOSITION_MODE)
     # Enable Dynamixel Torque for motors 1, 2, 3
     output_setTorque = du.setTorque(port_handler, packet_handler, MOTOR_IDs[:3], 1)
     # write the motors 1 2 3 to reference position
@@ -165,7 +169,7 @@ def stop_plot():
 
 # generate stop button
 button = QtGui.QPushButton("Save_Cal")
-button.clicked.connect(stop_plot)  # 按钮点击后触发关闭功能
+button.clicked.connect(stop_plot1)  # 按钮点击后触发关闭功能
 
 # link button and plot
 layout = QtGui.QVBoxLayout()  # 创建一个垂直布局
@@ -181,3 +185,214 @@ main_window.show()
 
 # start the plot cycle
 app.exec_()
+
+# ======================================================================================
+#                                   2nd Section Calibration
+# ======================================================================================
+# Generate plot window
+win = pg.GraphicsLayoutWidget(show=True)
+win.setWindowTitle("Real-Time IMU 1 2")
+
+# Generate plot area
+plot = win.addPlot(title="IMU 1 2")  # 设置标题
+plot.setLabel('bottom', 'newest points')  # 设置 x 轴标签
+plot.setLabel('left', 'angle/deg')  # 设置 y 轴标签
+plot.showGrid(x=True, y=True)  # 显示网格
+plot.addLegend()  # 添加图例
+plot.setXRange(np.min(time_cal), np.max(time_cal))  # 设置 x 轴范围
+
+# Plot the initial curve
+pitch_1_2 = plot.plot(time_cal, storage_1_2[:, 1], pen=pg.mkPen(color='r', width=2), name="pitch")  # 红色线
+roll_1_2 = plot.plot(time_cal, storage_1_2[:, 2], pen=pg.mkPen(color='g', width=2), name="roll")  # 绿色线
+
+# Add the reference dash line
+yline = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(color='k', style=pg.QtCore.Qt.DashLine, width=2))
+plot.addItem(yline)
+
+# Data updating function
+def update2():
+    sensor_val = su.sensor_call(sensorobj)
+    if sensor_val is not False:
+        q1 = sensor_val[1]
+        q2 = sensor_val[2]
+        q1_inv = rr.quatinv(q1)
+        RIMU1_2 = rr.quat2rotm(rr.quatmultiply(q1_inv, q2))
+        RROBO1_2 = np.transpose(Timu_2) @ RIMU1_2 @ Timu_2
+        eul1_2 = rr.rotm2eul(RROBO1_2)
+        storage_1_2 = np.vstack((storage_1_2[1:], eul1_2.reshape(1,-1)))
+        pitch_1_2.setData(time_cal, storage_1_2[:,1])
+        roll_1_2.setData(time_cal, storage_1_2[:,2])
+
+# Create time counter for update the plot
+timer = QtCore.QTimer()
+timer.timeout.connect(update2)
+timer.start(20) # update per 20 ms
+
+# Homingoffset calculating and saving function
+def stop_plot2():
+    timer.stop()  # 停止定时器
+    win.close()  # 关闭窗口
+    button.close()
+    main_window.close()
+
+    # Homingoffset calculating and saving
+    print("Calibration for 2nd section is done!")
+    # read the current homing offset
+    homingoffsets2_c = du.ReadHomingOffset(port_handler, packet_handler,  MOTOR_IDs[3:6])
+    # read the current motor position
+    motor_position2 = du.GroupSyncRead(packet_handler, groupread_position_num,  MOTOR_IDs[3:6], 'position')
+    # calculate proper homing offset for the 1st section
+    homingoffsets2_d = MOTOR_R[3:6] - motor_position2 + homingoffsets2_c
+    # write the proper homing offset
+    output_WriteHomingOffset = du.WriteHomingOffset(port_handler, packet_handler, MOTOR_IDs[3:6], homingoffsets2_d)
+    # change the Operating_Mode to extended position control
+    output_setOperatingMode = du.setOperatingMode(port_handler, packet_handler, MOTOR_IDs[3:6], EXPOSITION_MODE)
+    # Enable Dynamixel Torque for motors 1, 2, 3
+    output_setTorque = du.setTorque(port_handler, packet_handler, MOTOR_IDs[3:6], 1)
+    # write the motors 1 2 3 to reference position
+    output_groupWriteSync = du.groupWriteSync(packet_handler, groupwrite_position_num,  MOTOR_IDs[3:6], MOTOR_R[3:6], 'position')
+    while 1:
+        motor_position2 = du.GroupSyncRead(packet_handler, groupread_position_num, MOTOR_IDs[3:6], 'position')
+        if np.all(np.abs(motor_position2 - MOTOR_R[3:6]) <= POSITION_THRESHOLD):
+            break
+
+# generate stop button
+button = QtGui.QPushButton("Save_Cal")
+button.clicked.connect(stop_plot2)  # 按钮点击后触发关闭功能
+
+# link button and plot
+layout = QtGui.QVBoxLayout()  # 创建一个垂直布局
+layout.addWidget(win)  # 添加绘图窗口
+layout.addWidget(button)  # 添加按钮
+
+# generate main_win to contain plot_win and button
+main_window = QtGui.QWidget()
+main_window.setLayout(layout)
+main_window.resize(800, 600)
+main_window.setWindowTitle("Real-Time IMU 1 2")
+main_window.show()
+
+# start the plot cycle
+app.exec_()
+
+# ======================================================================================
+#                                   3rd Section Calibration
+# ======================================================================================
+# Generate plot window
+win = pg.GraphicsLayoutWidget(show=True)
+win.setWindowTitle("Real-Time IMU 2 3")
+
+# Generate plot area
+plot = win.addPlot(title="IMU 2 3")  # 设置标题
+plot.setLabel('bottom', 'newest points')  # 设置 x 轴标签
+plot.setLabel('left', 'angle/deg')  # 设置 y 轴标签
+plot.showGrid(x=True, y=True)  # 显示网格
+plot.addLegend()  # 添加图例
+plot.setXRange(np.min(time_cal), np.max(time_cal))  # 设置 x 轴范围
+
+# Plot the initial curve
+pitch_2_3 = plot.plot(time_cal, storage_2_3[:, 1], pen=pg.mkPen(color='r', width=2), name="pitch")  # 红色线
+roll_2_3 = plot.plot(time_cal, storage_2_3[:, 2], pen=pg.mkPen(color='g', width=2), name="roll")  # 绿色线
+
+# Add the reference dash line
+yline = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(color='k', style=pg.QtCore.Qt.DashLine, width=2))
+plot.addItem(yline)
+
+# Data updating function
+def update3():
+    sensor_val = su.sensor_call(sensorobj)
+    if sensor_val is not False:
+        q2 = sensor_val[2]
+        q3 = sensor_val[3]
+        q2_inv = rr.quatinv(q2)
+        RIMU2_3 = rr.quat2rotm(rr.quatmultiply(q2_inv, q3))
+        RROBO2_3 = np.transpose(Timu_3) @ RIMU2_3 @ Timu_3
+        eul2_3 = rr.rotm2eul(RROBO2_3)
+        storage_2_3 = np.vstack((storage_2_3[1:], eul2_3.reshape(1,-1)))
+        pitch_2_3.setData(time_cal, storage_2_3[:,1])
+        roll_2_3.setData(time_cal, storage_2_3[:,2])
+
+# Create time counter for update the plot
+timer = QtCore.QTimer()
+timer.timeout.connect(update3)
+timer.start(20) # update per 20 ms
+
+# Homingoffset calculating and saving function
+def stop_plot3():
+    timer.stop()  # 停止定时器
+    win.close()  # 关闭窗口
+    button.close()
+    main_window.close()
+
+    # Homingoffset calculating and saving
+    print("Calibration for 2nd section is done!")
+    # read the current homing offset
+    homingoffsets3_c = du.ReadHomingOffset(port_handler, packet_handler,  MOTOR_IDs[6:9])
+    # read the current motor position
+    motor_position3 = du.GroupSyncRead(packet_handler, groupread_position_num,  MOTOR_IDs[6:9], 'position')
+    # calculate proper homing offset for the 1st section
+    homingoffsets3_d = MOTOR_R[6:9] - motor_position3 + homingoffsets3_c
+    # write the proper homing offset
+    output_WriteHomingOffset = du.WriteHomingOffset(port_handler, packet_handler, MOTOR_IDs[6:9], homingoffsets3_d)
+    # change the Operating_Mode to extended position control
+    output_setOperatingMode = du.setOperatingMode(port_handler, packet_handler, MOTOR_IDs[6:9], EXPOSITION_MODE)
+    # Enable Dynamixel Torque for motors 1, 2, 3
+    output_setTorque = du.setTorque(port_handler, packet_handler, MOTOR_IDs[6:9], 1)
+    # write the motors 1 2 3 to reference position
+    output_groupWriteSync = du.groupWriteSync(packet_handler, groupwrite_position_num,  MOTOR_IDs[6:9], MOTOR_R[6:9], 'position')
+    while 1:
+        motor_position3 = du.GroupSyncRead(packet_handler, groupread_position_num, MOTOR_IDs[6:9], 'position')
+        if np.all(np.abs(motor_position3 - MOTOR_R[6:9]) <= POSITION_THRESHOLD):
+            break
+
+# generate stop button
+button = QtGui.QPushButton("Save_Cal")
+button.clicked.connect(stop_plot3)  # 按钮点击后触发关闭功能
+
+# link button and plot
+layout = QtGui.QVBoxLayout()  # 创建一个垂直布局
+layout.addWidget(win)  # 添加绘图窗口
+layout.addWidget(button)  # 添加按钮
+
+# generate main_win to contain plot_win and button
+main_window = QtGui.QWidget()
+main_window.setLayout(layout)
+main_window.resize(800, 600)
+main_window.setWindowTitle("Real-Time IMU 2 3")
+main_window.show()
+
+# start the plot cycle
+app.exec_()
+
+# ======================================================================================
+#                                   Tendon Lengths Calibration
+# ======================================================================================
+
+# 获取用户输入
+zpos_base = float(input("Input base position [mm]: "))
+zpos_1 = float(input("Input 1st tip position [mm]: "))
+zpos_2 = float(input("Input 2nd tip position [mm]: "))
+zpos_3 = float(input("Input 3rd tip position [mm]: "))
+
+# 计算参考腱长度
+len_1 = 0.001 * (zpos_base - 1 - zpos_1)
+len_2 = 0.001 * (zpos_1 - zpos_2)
+len_3 = 0.001 * (zpos_2 - zpos_3)
+
+# 创建 L_R 数组
+L_R = np.array([len_1, len_1, len_1, len_2, len_2, len_2, len_3, len_3, len_3])
+
+# 保存为 .npy 文件（推荐用于高效数据存储）
+np.save("L_R.npy", L_R)
+print("Data saved to L_R.npy")
+
+# ======================================================================================
+#                                   Motor Position Validate
+# ======================================================================================
+MOTOR_POSITION = du.GroupSyncRead(packet_handler, groupread_position_num, MOTOR_IDs, 'position')
+print(MOTOR_POSITION)
+
+# ======================================================================================
+#                                   Close everything
+# ======================================================================================
+output_ShutDown = du.ShutDown(port_handler, packet_handler, MOTOR_IDs)
