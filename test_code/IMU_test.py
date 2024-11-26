@@ -9,7 +9,8 @@ import robotic_rotation as rr
 
 if __name__ == "__main__":
     # setup serial port
-    port_imu = "COM14"
+    # port_imu = "COM14" # For windows
+    port_imu = "/dev/ttyACM0" # For Linux
     sensorobj = su.setup_serial_port(port_imu)
 
     # For IMU sensing

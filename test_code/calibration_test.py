@@ -18,7 +18,8 @@ import kinematics_delta2x as kd2x
 # ======================================================================================
 #                                   Dynamixel Setting
 # ======================================================================================
-DEVICENAME      = "COM5"
+# DEVICENAME      = "COM5"            # port name for Windows
+DEVICENAME      = '/dev/ttyUSB0'    # port name for Linux
 BAUDRATE        = 1000000
 CURRENT_MODE    = 0 
 EXPOSITION_MODE = 4
@@ -39,7 +40,8 @@ MOTOR_TENSION_CURRENT       = TENSION_CURRENT_VALUE * MOTOR_Orients
 #                                   IMUs Setup
 # ======================================================================================
 # setup serial port
-port_imu = "COM14"
+port_imu = "COM14"        # For Windows
+port_imu = "/dev/ttyACM0" # For Linux
 sensorobj = su.setup_serial_port(port_imu)
 
 # For IMU sensing
