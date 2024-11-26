@@ -28,15 +28,15 @@ def setup_serial_port(port_name):
 def sensor_call(SerialObj):
     SerialObj.reset_input_buffer()
     try:
-        sensor_string = SerialObj.readline().decode('utf-8').strip()
+        sensor_string = SerialObj.readline().decode('utf-8', errors='ignore').strip()
         float_pattern = r'[-+]?\d*\.\d+|\d+'
         data = re.findall(float_pattern, sensor_string)
         # print(data)
         if len(data) == 8 and all(len(d) >= 6 for d in data):
-            sensor_val = [
+            sensor_val = np.array([
                 [float(data[0]), float(data[1]), float(data[2]), float(data[3])],
                 [float(data[4]), float(data[5]), float(data[6]), float(data[7])]
-            ]
+            ])
         else:
             sensor_val = False
     except Exception as e:

@@ -26,7 +26,7 @@ def FK_L2S_jones(L, d_):
     # Combine outputs into a list
     out1 = [s, k, phi]
     
-    return out1
+    return np.array(out1)
 
 def FK_L2S_cosimo_old(L, d_):
     """
@@ -59,7 +59,7 @@ def FK_L2S_cosimo_old(L, d_):
     theta = (t5 * np.sqrt(-l_1 * l_2 - l_1 * l_3 - l_2 * l_3 + l_1**2 + l_2**2 + l_3**2) * 2.0) / (d_ * (l_1 + l_2 + l_3))
     
     # Combine results into a single array
-    out1 = np.column_stack((s, phi, theta))
+    out1 = np.array([s, phi, theta])
     
     return out1
 
@@ -117,7 +117,7 @@ def FK_L2S_cosimo_new(L, d):
     deltay = t16 * t27 * t28 * t33 * t34 * (3.0 * t2 - 3.0 * t3 + t22 * (t4 + t5 - 2.0 * np.real(l1))) * 2.0
 
     # 转置输出
-    out1 = np.transpose([s, deltax, deltay])
+    out1 = np.array([s, deltax, deltay])
     return out1
 
 def FK_L2S_new_3sections(in1, d):
@@ -141,6 +141,6 @@ def FK_L2S_new_3sections(in1, d):
     sdxdy3 = FK_L2S_cosimo_new([l7, l8, l9], d)
 
     sdxdy = [sdxdy1[0], sdxdy1[1], sdxdy1[2], sdxdy2[0], sdxdy2[1], sdxdy2[2], sdxdy3[0], sdxdy3[1], sdxdy3[2]]
-    sdxdy = np.transpose(sdxdy)
+    sdxdy = np.array(sdxdy)
 
     return sdxdy

@@ -151,7 +151,7 @@ def rotm2eul(R, order='ZYX'):
     else:
         raise ValueError("Invalid rotation order. Supported orders are 'XYZ' and 'ZYX'.")
 
-    return euler_angles
+    return np.array(euler_angles)
 
 def eul2rotm(eul, order='ZYX'):
     """
