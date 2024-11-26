@@ -1,3 +1,6 @@
+import sys
+sys.path.append("../")
+
 import numpy as np
 import robotic_rotation as rr
 import tentacle_utility as tu
@@ -8,7 +11,7 @@ if __name__ == "__main__":
     S = np.array([0.08, 0.08, 0.08])
 
     # setup serial port
-    port_imu = "COM6"
+    port_imu = "COM8"
     sensorobj = tu.setup_serial_port(port_imu)
 
     # Plot circles
@@ -39,8 +42,8 @@ if __name__ == "__main__":
             eulbase = np.rad2deg(eulbase)
             eultip = rr.quat2eul(qtip)
             eultip = np.rad2deg(eultip)
-            print(f"eul_base(ZYX) \t{eulbase[0]}, {eulbase[1]}, {eulbase[2]}")
-            print(f"eul_tip(ZYX) \t{eultip[0]}, {eultip[1]}, {eultip[2]}")
+            # print(f"eul_base(ZYX) \t{eulbase[0]}, {eulbase[1]}, {eulbase[2]}")
+            # print(f"eul_tip(ZYX) \t{eultip[0]}, {eultip[1]}, {eultip[2]}")
 
             qbase_inv = rr.quatinv(qbase)
 
@@ -48,13 +51,11 @@ if __name__ == "__main__":
 
             eulbase_1 = rr.quat2eul(qbase_1)
             eulbase_1 = np.rad2deg(eulbase_1)
-            # print(f"eul_base_1(ZYX) \t{eulbase_1[0]}, {eulbase_1[1]}, {eulbase_1[2]}")
-
-
+            print(f"eul_base_1(ZYX) \t{eulbase_1}")
 
             Rbase_1 = rr.quat2rotm(qbase_1)
             sdxdy = tu.pcc_recon_R(S,Rbase_1)
-            # print(f"sdxdy \t{sdxdy[0]}, {sdxdy[1]}, {sdxdy[2]}")
+            # print(f"sdxdy \t{sdxdy}")
 
             # sections, [circle0, circle1] = plt_soft(sdxdy[0], sdxdy[1], sdxdy[2])
 
